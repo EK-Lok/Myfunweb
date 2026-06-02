@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EK — AI Content Creation Trainer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #161616;
+      --card: #1e1e1e;
+      --border: #2a2a2a;
+      --accent: #7c3aed;
+      --accent2: #a855f7;
+      --text: #f0f0f0;
+      --muted: #888;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(13,13,13,0.92);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+    .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent2); letter-spacing: 2px; }
+    nav ul { list-style: none; display: flex; gap: 2rem; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    nav a:hover { color: var(--text); }
+
+    /* HERO */
+    .hero {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 5rem 2rem 4rem;
+      display: flex;
+      align-items: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+    }
+    .hero-text { flex: 1; min-width: 260px; }
+    .hero-text .tag {
+      display: inline-block;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(168,85,247,0.3);
+      color: var(--accent2);
+      font-size: 0.75rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .hero-text h1 {
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .hero-text h1 span { color: var(--accent2); }
+    .hero-text p {
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 1rem;
+      max-width: 480px;
+      margin-bottom: 1.8rem;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      padding: 0.7rem 1.6rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn:hover { background: var(--accent2); transform: translateY(-1px); }
+
+    .hero-img {
+      flex-shrink: 0;
+    }
+    .hero-img img {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 40px rgba(124,58,237,0.3);
+    }
+
+    /* SKILLS */
+    .section { max-width: 900px; margin: 0 auto; padding: 3rem 2rem; }
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+    }
+    .section-title span { color: var(--accent2); }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+    .chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 0.4rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+    }
+
+    /* GAME SECTION */
+    .game-section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 2rem 4rem;
+    }
+    .game-section h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .game-section h2 span { color: var(--accent2); }
+    .game-section p.subtitle {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .game-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.8rem;
+    }
+
+    /* WORD GRID */
+    #word-display {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1.2rem;
+      min-height: 56px;
+    }
+    .letter-box {
+      width: 44px;
+      height: 44px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: var(--surface);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .letter-box.correct { background: #166534; border-color: var(--green); color: #fff; }
+    .letter-box.wrong-pos { background: #854d0e; border-color: var(--yellow); color: #fff; }
+    .letter-box.wrong { background: #2a2a2a; border-color: #444; color: var(--muted); }
+
+    /* HINT & STATUS */
+    #hint-text {
+      text-align: center;
+      color: var(--accent2);
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      font-style: italic;
+      min-height: 1.2em;
+    }
+    #status-msg {
+      text-align: center;
+      font-size: 0.9rem;
+      min-height: 1.4em;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    /* ATTEMPTS */
+    #attempts-display {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 1.2rem;
+    }
+    .attempt-row {
+      display: flex;
+      gap: 0.4rem;
+      justify-content: center;
+      margin-bottom: 0.4rem;
+    }
+    .attempt-box {
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: var(--surface);
+    }
+    .attempt-box.correct { background: #166534; border-color: var(--green); color: #fff; }
+    .attempt-box.wrong-pos { background: #854d0e; border-color: var(--yellow); color: #fff; }
+    .attempt-box.wrong { background: #2a2a2a; border-color: #444; color: #555; }
+
+    /* INPUT ROW */
+    .input-row {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    #guess-input {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 180px;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #guess-input:focus { border-color: var(--accent2); }
+    .game-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .game-btn:hover { background: var(--accent2); }
+    .game-btn.secondary {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+    }
+    .game-btn.secondary:hover { border-color: var(--accent2); color: var(--text); }
+
+    /* KEYBOARD */
+    .keyboard { display: flex; flex-direction: column; gap: 0.4rem; align-items: center; margin-top: 1rem; }
+    .kb-row { display: flex; gap: 0.3rem; flex-wrap: wrap; justify-content: center; }
+    .kb-key {
+      min-width: 34px;
+      height: 44px;
+      padding: 0 0.4rem;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .kb-key:hover { background: #2a2a2a; }
+    .kb-key.correct { background: #166534; border-color: var(--green); color: #fff; }
+    .kb-key.wrong-pos { background: #854d0e; border-color: var(--yellow); color: #fff; }
+    .kb-key.wrong { background: #1a1a1a; border-color: #333; color: #444; }
+    .kb-key.wide { min-width: 52px; font-size: 0.72rem; }
+
+    /* LEGEND */
+    .legend {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1.2rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .legend-item { display: flex; align-items: center; gap: 0.4rem; }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 2px;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .hero { flex-direction: column-reverse; align-items: center; text-align: center; padding: 3rem 1.2rem 2rem; }
+      .hero-text p { margin: 0 auto 1.5rem; }
+      .hero-img img { width: 160px; height: 160px; }
+      nav ul { gap: 1rem; }
+      .letter-box { width: 36px; height: 36px; font-size: 1rem; }
+      .attempt-box { width: 30px; height: 30px; font-size: 0.78rem; }
+      .kb-key { min-width: 28px; height: 38px; font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">EK</div>
+  <ul>
+    <li><a href="#about">About</a></li>
+    <li><a href="#game">Game</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="about">
+  <div class="hero-text">
+    <div class="tag">AI Content Creation Trainer</div>
+    <h1>Hi, I'm <span>EK</span> 👋</h1>
+    <p>
+      I help individuals and teams unlock the power of AI for content creation.
+      From prompt crafting to workflow automation, I turn AI tools into real creative skills
+      you can use every day.
+    </p>
+    <a href="#game" class="btn">Play My Word Game</a>
+  </div>
+  <div class="hero-img">
+    <img src="ME NEW square.jpg" alt="EK profile photo" />
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section class="section">
+  <h2 class="section-title">What I <span>Do</span></h2>
+  <div class="chips">
+    <span class="chip">Prompt Engineering</span>
+    <span class="chip">AI Writing Tools</span>
+    <span class="chip">Content Strategy</span>
+    <span class="chip">Workflow Automation</span>
+    <span class="chip">ChatGPT & Claude</span>
+    <span class="chip">AI Video & Image</span>
+    <span class="chip">Training & Workshops</span>
+    <span class="chip">Social Media AI</span>
+    <span class="chip">AI Productivity</span>
+  </div>
+</section>
+
+<!-- GAME -->
+<section class="game-section" id="game">
+  <h2>AI <span>Word Game</span></h2>
+  <p class="subtitle">Guess the AI &amp; content creation term. You have 6 tries. Green = correct spot, Yellow = wrong spot.</p>
+
+  <div class="game-card">
+    <div id="hint-text"></div>
+    <div id="word-display"></div>
+    <div id="attempts-log"></div>
+    <div id="status-msg"></div>
+    <div class="input-row">
+      <input id="guess-input" type="text" maxlength="20" placeholder="Your guess..." autocomplete="off" autocorrect="off" spellcheck="false" />
+      <button class="game-btn" onclick="submitGuess()">Guess</button>
+      <button class="game-btn secondary" onclick="newGame()">New Word</button>
+    </div>
+    <div class="keyboard" id="keyboard"></div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#166534;"></div> Correct spot</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#854d0e;"></div> Wrong spot</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#2a2a2a;border:1px solid #444"></div> Not in word</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  &copy; 2026 EK · AI Content Creation Trainer
+</footer>
+
+<script>
+  // ── WORD LIST ──────────────────────────────────────────────
+  const WORDS = [
+    { word: "PROMPT",    hint: "What you type into an AI to get a response" },
+    { word: "MODEL",     hint: "The AI brain behind the tool (e.g. GPT-4, Claude)" },
+    { word: "TOKEN",     hint: "Small chunk of text that AI processes" },
+    { word: "AGENT",     hint: "AI that can take actions autonomously" },
+    { word: "TRAIN",     hint: "Teaching an AI on data" },
+    { word: "DRAFT",     hint: "First version of AI-generated content" },
+    { word: "IMAGE",     hint: "Visual output from tools like Midjourney or DALL-E" },
+    { word: "VIDEO",     hint: "AI-generated moving content" },
+    { word: "VOICE",     hint: "AI-generated audio narration" },
+    { word: "BRIEF",     hint: "Short creative direction given to AI" },
+    { word: "CONTEXT",   hint: "Background info given to an AI in a conversation" },
+    { word: "SCRIPT",    hint: "AI-written text for video or presentation" },
+    { word: "CAPTION",   hint: "Short AI-written text for social media posts" },
+    { word: "CONTENT",   hint: "The output produced for audiences" },
+    { word: "WORKFLOW",  hint: "Step-by-step process to create content with AI" },
+    { word: "ITERATE",   hint: "Refining your AI output through multiple rounds" },
+    { word: "GENERATE",  hint: "To produce output using AI" },
+  ];
+
+  // ── STATE ──────────────────────────────────────────────────
+  let target = "";
+  let hint = "";
+  let attempts = [];
+  let maxAttempts = 6;
+  let gameOver = false;
+  let keyStates = {};
+
+  // ── INIT ───────────────────────────────────────────────────
+  function newGame() {
+    const pick = WORDS[Math.floor(Math.random() * WORDS.length)];
+    target = pick.word;
+    hint = pick.hint;
+    attempts = [];
+    gameOver = false;
+    keyStates = {};
+    document.getElementById("status-msg").textContent = "";
+    document.getElementById("guess-input").value = "";
+    document.getElementById("guess-input").disabled = false;
+    document.getElementById("hint-text").textContent = "Hint: " + hint;
+    renderWordDisplay();
+    renderAttempts();
+    renderKeyboard();
+  }
+
+  // ── RENDER CURRENT WORD BLANKS ────────────────────────────
+  function renderWordDisplay() {
+    const container = document.getElementById("word-display");
+    container.innerHTML = "";
+    for (let i = 0; i < target.length; i++) {
+      const box = document.createElement("div");
+      box.className = "letter-box";
+      // Fill in solved letters
+      const solved = getSolvedLetters();
+      box.textContent = solved[i] || "";
+      container.appendChild(box);
+    }
+  }
+
+  function getSolvedLetters() {
+    const solved = Array(target.length).fill("");
+    for (const attempt of attempts) {
+      const result = scoreGuess(attempt);
+      result.forEach((r, i) => {
+        if (r === "correct") solved[i] = attempt[i];
+      });
+    }
+    return solved;
+  }
+
+  // ── SCORE A GUESS ─────────────────────────────────────────
+  function scoreGuess(guess) {
+    const result = Array(target.length).fill("wrong");
+    const targetArr = target.split("");
+    const guessArr  = guess.split("");
+    const used = Array(target.length).fill(false);
+
+    // Pass 1: correct positions
+    guessArr.forEach((ch, i) => {
+      if (ch === targetArr[i]) {
+        result[i] = "correct";
+        used[i] = true;
+      }
+    });
+
+    // Pass 2: wrong position
+    guessArr.forEach((ch, i) => {
+      if (result[i] === "correct") return;
+      const j = targetArr.findIndex((tc, ti) => !used[ti] && tc === ch);
+      if (j !== -1) {
+        result[i] = "wrong-pos";
+        used[j] = true;
+      }
+    });
+
+    return result;
+  }
+
+  // ── RENDER PAST ATTEMPTS ──────────────────────────────────
+  function renderAttempts() {
+    const log = document.getElementById("attempts-log");
+    log.innerHTML = "";
+    attempts.forEach(attempt => {
+      const result = scoreGuess(attempt);
+      const row = document.createElement("div");
+      row.className = "attempt-row";
+      attempt.split("").forEach((ch, i) => {
+        const box = document.createElement("div");
+        box.className = "attempt-box " + result[i];
+        box.textContent = ch;
+        row.appendChild(box);
+      });
+      log.appendChild(row);
+    });
+  }
+
+  // ── KEYBOARD ──────────────────────────────────────────────
+  const ROWS = [
+    ["Q","W","E","R","T","Y","U","I","O","P"],
+    ["A","S","D","F","G","H","J","K","L"],
+    ["ENTER","Z","X","C","V","B","N","M","⌫"]
+  ];
+
+  function renderKeyboard() {
+    const kb = document.getElementById("keyboard");
+    kb.innerHTML = "";
+    ROWS.forEach(row => {
+      const rowEl = document.createElement("div");
+      rowEl.className = "kb-row";
+      row.forEach(k => {
+        const btn = document.createElement("button");
+        btn.className = "kb-key" + (k.length > 1 ? " wide" : "");
+        btn.textContent = k;
+        const state = keyStates[k];
+        if (state) btn.classList.add(state);
+        btn.addEventListener("click", () => {
+          if (k === "ENTER") submitGuess();
+          else if (k === "⌫") backspace();
+          else typeKey(k);
+        });
+        rowEl.appendChild(btn);
+      });
+      kb.appendChild(rowEl);
+    });
+  }
+
+  function typeKey(k) {
+    const inp = document.getElementById("guess-input");
+    if (inp.value.length < target.length) inp.value += k;
+  }
+  function backspace() {
+    const inp = document.getElementById("guess-input");
+    inp.value = inp.value.slice(0, -1);
+  }
+
+  // ── SUBMIT GUESS ──────────────────────────────────────────
+  function submitGuess() {
+    if (gameOver) return;
+    const inp = document.getElementById("guess-input");
+    const guess = inp.value.toUpperCase().trim();
+    const status = document.getElementById("status-msg");
+
+    if (guess.length !== target.length) {
+      status.style.color = "var(--yellow)";
+      status.textContent = `Guess must be ${target.length} letters.`;
+      return;
+    }
+    if (!/^[A-Z]+$/.test(guess)) {
+      status.style.color = "var(--yellow)";
+      status.textContent = "Letters only please!";
+      return;
+    }
+
+    attempts.push(guess);
+    inp.value = "";
+
+    // Update key states
+    const result = scoreGuess(guess);
+    guess.split("").forEach((ch, i) => {
+      const r = result[i];
+      const cur = keyStates[ch];
+      if (cur === "correct") return;
+      if (r === "correct") keyStates[ch] = "correct";
+      else if (r === "wrong-pos" && cur !== "correct") keyStates[ch] = "wrong-pos";
+      else if (!cur) keyStates[ch] = "wrong";
+    });
+
+    renderAttempts();
+    renderKeyboard();
+
+    if (guess === target) {
+      status.style.color = "var(--green)";
+      status.textContent = "🎉 You got it! Hit 'New Word' to play again.";
+      gameOver = true;
+      inp.disabled = true;
+      renderWordDisplay();
+    } else if (attempts.length >= maxAttempts) {
+      status.style.color = "var(--red)";
+      status.textContent = `Game over! The word was "${target}". Try another!`;
+      gameOver = true;
+      inp.disabled = true;
+      // Reveal the word
+      const container = document.getElementById("word-display");
+      container.innerHTML = "";
+      target.split("").forEach(ch => {
+        const box = document.createElement("div");
+        box.className = "letter-box correct";
+        box.textContent = ch;
+        container.appendChild(box);
+      });
+    } else {
+      status.style.color = "var(--muted)";
+      status.textContent = `${maxAttempts - attempts.length} attempt${maxAttempts - attempts.length !== 1 ? "s" : ""} left.`;
+      renderWordDisplay();
+    }
+  }
+
+  // ── KEYBOARD INPUT ────────────────────────────────────────
+  document.addEventListener("keydown", (e) => {
+    if (gameOver) return;
+    if (e.key === "Enter") { submitGuess(); return; }
+    if (e.key === "Backspace") { backspace(); return; }
+    if (/^[a-zA-Z]$/.test(e.key)) typeKey(e.key.toUpperCase());
+  });
+
+  // ── START ─────────────────────────────────────────────────
+  newGame();
+</script>
+
+</body>
+</html>
