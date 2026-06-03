@@ -1,634 +1,967 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EK — AI Content Creation Trainer</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lok Eng Keat â Trainer & AI Content Creator</title>
+<style>
+  :root {
+    --pink: #ff4da6;
+    --purple: #9b5de5;
+    --blue: #00bbf9;
+    --cyan: #00f5d4;
+    --yellow: #fee440;
+    --orange: #f15bb5;
+    --dark: #0d0d1a;
+    --card: #1a1a2e;
+    --card2: #16213e;
+    --text: #e8e8f0;
+    --muted: #a0a0c0;
+  }
 
-    :root {
-      --bg: #0d0d0d;
-      --surface: #161616;
-      --card: #1e1e1e;
-      --border: #2a2a2a;
-      --accent: #7c3aed;
-      --accent2: #a855f7;
-      --text: #f0f0f0;
-      --muted: #888;
-      --green: #22c55e;
-      --red: #ef4444;
-      --yellow: #eab308;
-    }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
-    }
+  html { scroll-behavior: smooth; }
 
-    /* NAV */
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.2rem 2rem;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: rgba(13,13,13,0.92);
-      backdrop-filter: blur(10px);
-      z-index: 10;
-    }
-    .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent2); letter-spacing: 2px; }
-    nav ul { list-style: none; display: flex; gap: 2rem; }
-    nav a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
-    nav a:hover { color: var(--text); }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    overflow-x: hidden;
+  }
 
-    /* HERO */
-    .hero {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 5rem 2rem 4rem;
-      display: flex;
-      align-items: center;
-      gap: 3rem;
-      flex-wrap: wrap;
-    }
-    .hero-text { flex: 1; min-width: 260px; }
-    .hero-text .tag {
-      display: inline-block;
-      background: rgba(124,58,237,0.15);
-      border: 1px solid rgba(168,85,247,0.3);
-      color: var(--accent2);
-      font-size: 0.75rem;
-      padding: 0.3rem 0.8rem;
-      border-radius: 999px;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 1.2rem;
-    }
-    .hero-text h1 {
-      font-size: clamp(2.2rem, 5vw, 3.2rem);
-      font-weight: 800;
-      line-height: 1.15;
-      margin-bottom: 1rem;
-    }
-    .hero-text h1 span { color: var(--accent2); }
-    .hero-text p {
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 1rem;
-      max-width: 480px;
-      margin-bottom: 1.8rem;
-    }
-    .btn {
-      display: inline-block;
-      background: var(--accent);
-      color: #fff;
-      padding: 0.7rem 1.6rem;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: background 0.2s, transform 0.1s;
-    }
-    .btn:hover { background: var(--accent2); transform: translateY(-1px); }
+  /* âââ NAV âââ */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 32px;
+    background: rgba(13,13,26,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(155,93,229,0.25);
+  }
+  .nav-logo {
+    font-size: 1.1rem; font-weight: 800;
+    background: linear-gradient(90deg, var(--pink), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav-links { display: flex; gap: 24px; list-style: none; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none; font-size: 0.9rem;
+    font-weight: 600; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--cyan); }
 
-    .hero-img {
-      flex-shrink: 0;
-    }
-    .hero-img img {
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid var(--accent);
-      box-shadow: 0 0 40px rgba(124,58,237,0.3);
-    }
+  /* hamburger */
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+  .hamburger span { width: 25px; height: 3px; background: var(--text); border-radius: 3px; transition: all 0.3s; }
 
-    /* SKILLS */
-    .section { max-width: 900px; margin: 0 auto; padding: 3rem 2rem; }
-    .section-title {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      color: var(--text);
-    }
-    .section-title span { color: var(--accent2); }
-    .chips { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-    .chip {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 0.4rem 0.9rem;
-      border-radius: 6px;
-      font-size: 0.82rem;
-    }
+  /* âââ HERO âââ */
+  #hero {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 120px 20px 60px;
+    background: radial-gradient(ellipse at top, #1a0533 0%, var(--dark) 70%);
+    position: relative; overflow: hidden;
+  }
+  .hero-bg-circles {
+    position: absolute; inset: 0; pointer-events: none;
+  }
+  .circle {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.35;
+    animation: float 6s ease-in-out infinite;
+  }
+  .c1 { width: 400px; height: 400px; background: var(--purple); top: -100px; left: -100px; animation-delay: 0s; }
+  .c2 { width: 300px; height: 300px; background: var(--blue); bottom: -50px; right: -50px; animation-delay: 2s; }
+  .c3 { width: 200px; height: 200px; background: var(--pink); top: 50%; left: 50%; animation-delay: 4s; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
 
-    /* GAME SECTION */
-    .game-section {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem 2rem 4rem;
-    }
-    .game-section h2 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 0.4rem;
-    }
-    .game-section h2 span { color: var(--accent2); }
-    .game-section p.subtitle {
-      color: var(--muted);
-      font-size: 0.88rem;
-      margin-bottom: 1.5rem;
-    }
+  .hero-content { position: relative; z-index: 2; max-width: 700px; }
 
-    .game-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.8rem;
-    }
+  .profile-img-wrap {
+    width: 160px; height: 160px; border-radius: 50%; margin: 0 auto 24px;
+    padding: 4px;
+    background: linear-gradient(135deg, var(--pink), var(--purple), var(--blue));
+    box-shadow: 0 0 40px rgba(155,93,229,0.5);
+    animation: glow 3s ease-in-out infinite alternate;
+  }
+  @keyframes glow {
+    from { box-shadow: 0 0 30px rgba(155,93,229,0.4); }
+    to { box-shadow: 0 0 60px rgba(0,187,249,0.6); }
+  }
+  .profile-img-wrap img {
+    width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+  }
 
-    /* WORD GRID */
-    #word-display {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 1.2rem;
-      min-height: 56px;
-    }
-    .letter-box {
-      width: 44px;
-      height: 44px;
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      background: var(--surface);
-      transition: background 0.3s, border-color 0.3s;
-    }
-    .letter-box.correct { background: #166534; border-color: var(--green); color: #fff; }
-    .letter-box.wrong-pos { background: #854d0e; border-color: var(--yellow); color: #fff; }
-    .letter-box.wrong { background: #2a2a2a; border-color: #444; color: var(--muted); }
+  .hero-badge {
+    display: inline-block; margin-bottom: 16px;
+    padding: 6px 18px; border-radius: 20px;
+    background: linear-gradient(90deg, var(--pink), var(--purple));
+    font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  }
 
-    /* HINT & STATUS */
-    #hint-text {
-      text-align: center;
-      color: var(--accent2);
-      font-size: 0.85rem;
-      margin-bottom: 1rem;
-      font-style: italic;
-      min-height: 1.2em;
-    }
-    #status-msg {
-      text-align: center;
-      font-size: 0.9rem;
-      min-height: 1.4em;
-      margin-bottom: 1rem;
-      font-weight: 600;
-    }
+  h1 {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900; line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, var(--cyan) 50%, var(--blue) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
 
-    /* ATTEMPTS */
-    #attempts-display {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.82rem;
-      margin-bottom: 1.2rem;
-    }
-    .attempt-row {
-      display: flex;
-      gap: 0.4rem;
-      justify-content: center;
-      margin-bottom: 0.4rem;
-    }
-    .attempt-box {
-      width: 36px;
-      height: 36px;
-      border: 1.5px solid var(--border);
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.9rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      background: var(--surface);
-    }
-    .attempt-box.correct { background: #166534; border-color: var(--green); color: #fff; }
-    .attempt-box.wrong-pos { background: #854d0e; border-color: var(--yellow); color: #fff; }
-    .attempt-box.wrong { background: #2a2a2a; border-color: #444; color: #555; }
+  .hero-sub {
+    font-size: clamp(1rem, 3vw, 1.25rem);
+    color: var(--muted); margin-bottom: 28px; line-height: 1.6;
+  }
 
-    /* INPUT ROW */
-    .input-row {
-      display: flex;
-      gap: 0.6rem;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
-    }
-    #guess-input {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      color: var(--text);
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      width: 180px;
-      text-transform: uppercase;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    #guess-input:focus { border-color: var(--accent2); }
-    .game-btn {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .game-btn:hover { background: var(--accent2); }
-    .game-btn.secondary {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      color: var(--muted);
-    }
-    .game-btn.secondary:hover { border-color: var(--accent2); color: var(--text); }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 32px; }
+  .tag {
+    padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+    border: 2px solid; cursor: default;
+    transition: transform 0.2s;
+  }
+  .tag:hover { transform: scale(1.05); }
+  .tag-pink { color: var(--pink); border-color: var(--pink); }
+  .tag-blue { color: var(--blue); border-color: var(--blue); }
+  .tag-cyan { color: var(--cyan); border-color: var(--cyan); }
+  .tag-yellow { color: var(--yellow); border-color: var(--yellow); }
 
-    /* KEYBOARD */
-    .keyboard { display: flex; flex-direction: column; gap: 0.4rem; align-items: center; margin-top: 1rem; }
-    .kb-row { display: flex; gap: 0.3rem; flex-wrap: wrap; justify-content: center; }
-    .kb-key {
-      min-width: 34px;
-      height: 44px;
-      padding: 0 0.4rem;
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      color: var(--text);
-      font-size: 0.82rem;
-      font-weight: 600;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.15s;
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .kb-key:hover { background: #2a2a2a; }
-    .kb-key.correct { background: #166534; border-color: var(--green); color: #fff; }
-    .kb-key.wrong-pos { background: #854d0e; border-color: var(--yellow); color: #fff; }
-    .kb-key.wrong { background: #1a1a1a; border-color: #333; color: #444; }
-    .kb-key.wide { min-width: 52px; font-size: 0.72rem; }
+  .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    padding: 12px 28px; border-radius: 30px; font-size: 0.95rem; font-weight: 700;
+    text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer; border: none;
+  }
+  .btn:hover { transform: translateY(-3px); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(155,93,229,0.4);
+  }
+  .btn-primary:hover { box-shadow: 0 8px 30px rgba(155,93,229,0.6); }
+  .btn-outline {
+    background: transparent; color: var(--cyan);
+    border: 2px solid var(--cyan);
+  }
+  .btn-outline:hover { background: var(--cyan); color: var(--dark); }
 
-    /* LEGEND */
-    .legend {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 1.2rem;
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-    .legend-item { display: flex; align-items: center; gap: 0.4rem; }
-    .legend-dot {
-      width: 12px; height: 12px; border-radius: 2px;
-    }
+  /* âââ SECTIONS âââ */
+  section { padding: 80px 20px; }
+  .container { max-width: 1000px; margin: 0 auto; }
 
-    /* FOOTER */
-    footer {
-      border-top: 1px solid var(--border);
-      text-align: center;
-      padding: 1.5rem;
-      color: var(--muted);
-      font-size: 0.8rem;
-    }
+  .section-label {
+    display: inline-block; margin-bottom: 10px;
+    padding: 4px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .sl-pink { background: rgba(255,77,166,0.2); color: var(--pink); }
+  .sl-blue { background: rgba(0,187,249,0.2); color: var(--blue); }
+  .sl-cyan { background: rgba(0,245,212,0.2); color: var(--cyan); }
+  .sl-yellow { background: rgba(254,228,64,0.2); color: var(--yellow); }
 
-    /* RESPONSIVE */
-    @media (max-width: 600px) {
-      .hero { flex-direction: column-reverse; align-items: center; text-align: center; padding: 3rem 1.2rem 2rem; }
-      .hero-text p { margin: 0 auto 1.5rem; }
-      .hero-img img { width: 160px; height: 160px; }
-      nav ul { gap: 1rem; }
-      .letter-box { width: 36px; height: 36px; font-size: 1rem; }
-      .attempt-box { width: 30px; height: 30px; font-size: 0.78rem; }
-      .kb-key { min-width: 28px; height: 38px; font-size: 0.72rem; }
-    }
-  </style>
+  .section-title {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 900; margin-bottom: 40px;
+    background: linear-gradient(90deg, #fff, var(--muted));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+
+  /* âââ ABOUT âââ */
+  #about { background: var(--card2); }
+  .about-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start;
+  }
+  .about-text p {
+    color: var(--muted); line-height: 1.8; margin-bottom: 16px; font-size: 1rem;
+  }
+  .about-text p strong { color: var(--cyan); }
+
+  .stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .stat-card {
+    background: var(--card); border-radius: 16px; padding: 20px; text-align: center;
+    border: 1px solid rgba(155,93,229,0.2);
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-4px); border-color: var(--purple); }
+  .stat-num {
+    font-size: 2rem; font-weight: 900; line-height: 1;
+    background: linear-gradient(135deg, var(--pink), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+
+  /* âââ TIMELINE âââ */
+  #career { background: var(--dark); }
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 10px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--pink), var(--blue), var(--cyan));
+    border-radius: 2px;
+  }
+  .tl-item { position: relative; margin-bottom: 36px; }
+  .tl-dot {
+    position: absolute; left: -27px; top: 4px;
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 3px solid var(--purple);
+    background: var(--dark);
+    transition: background 0.2s;
+  }
+  .tl-item:hover .tl-dot { background: var(--purple); }
+  .tl-card {
+    background: var(--card); border-radius: 16px; padding: 20px 24px;
+    border: 1px solid rgba(155,93,229,0.15);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .tl-card:hover { border-color: var(--purple); transform: translateX(4px); }
+  .tl-date {
+    font-size: 0.75rem; font-weight: 700; color: var(--pink);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+  }
+  .tl-title { font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  .tl-org { font-size: 0.85rem; color: var(--cyan); margin-bottom: 10px; }
+  .tl-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
+
+  /* âââ AWARDS âââ */
+  #awards { background: var(--card2); }
+  .awards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+  .award-card {
+    background: var(--card); border-radius: 20px; padding: 24px;
+    border: 1px solid rgba(254,228,64,0.2);
+    transition: transform 0.2s, border-color 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .award-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--yellow), var(--orange));
+  }
+  .award-card:hover { transform: translateY(-6px); border-color: var(--yellow); }
+  .award-icon { font-size: 2rem; margin-bottom: 12px; }
+  .award-title { font-size: 1rem; font-weight: 800; color: var(--yellow); margin-bottom: 6px; }
+  .award-org { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+  .award-desc { font-size: 0.85rem; color: var(--text); line-height: 1.6; }
+
+  /* âââ TRAINING âââ */
+  #training { background: var(--dark); }
+  .training-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .training-card {
+    background: var(--card); border-radius: 16px; padding: 20px;
+    border: 1px solid rgba(0,187,249,0.15);
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .training-card:hover { transform: translateY(-4px); border-color: var(--blue); }
+  .training-icon { font-size: 1.8rem; margin-bottom: 10px; }
+  .training-title { font-size: 0.95rem; font-weight: 700; color: var(--blue); margin-bottom: 8px; }
+  .training-orgs { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+
+  /* âââ QUIZ âââ */
+  #quiz {
+    background: linear-gradient(135deg, #0d0d1a 0%, #1a0533 50%, #0d1a2e 100%);
+    padding: 80px 20px;
+  }
+  .quiz-wrapper { max-width: 700px; margin: 0 auto; }
+
+  .quiz-header-info {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+  .quiz-progress-bar-wrap {
+    width: 100%; height: 8px; background: rgba(255,255,255,0.1);
+    border-radius: 8px; overflow: hidden; margin-bottom: 8px;
+  }
+  .quiz-progress-bar {
+    height: 100%; border-radius: 8px;
+    background: linear-gradient(90deg, var(--pink), var(--blue));
+    transition: width 0.4s ease;
+  }
+  .quiz-q-counter { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+  .quiz-score-display {
+    font-size: 0.85rem; font-weight: 700;
+    color: var(--cyan);
+  }
+
+  .quiz-card {
+    background: var(--card); border-radius: 24px; padding: 36px;
+    border: 1px solid rgba(155,93,229,0.2);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    min-height: 380px; display: flex; flex-direction: column;
+  }
+  .quiz-q-num {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--pink); margin-bottom: 12px;
+  }
+  .quiz-question {
+    font-size: clamp(1rem, 3vw, 1.2rem); font-weight: 700;
+    color: #fff; line-height: 1.5; margin-bottom: 28px; flex: 1;
+  }
+
+  .quiz-options { display: flex; flex-direction: column; gap: 12px; }
+  .quiz-option {
+    padding: 14px 20px; border-radius: 14px; cursor: pointer;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    color: var(--text); font-size: 0.95rem; font-weight: 500;
+    transition: all 0.2s; text-align: left;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .quiz-option:hover:not(:disabled) {
+    background: rgba(155,93,229,0.15);
+    border-color: var(--purple); transform: translateX(6px);
+  }
+  .quiz-option.correct {
+    background: rgba(0,245,212,0.15); border-color: var(--cyan);
+    color: var(--cyan);
+  }
+  .quiz-option.wrong {
+    background: rgba(255,77,166,0.15); border-color: var(--pink);
+    color: var(--pink);
+  }
+  .quiz-option.reveal-correct {
+    background: rgba(0,245,212,0.08); border-color: rgba(0,245,212,0.4);
+    color: rgba(0,245,212,0.7);
+  }
+  .option-indicator {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.75rem;
+    background: rgba(255,255,255,0.1);
+  }
+  .correct .option-indicator { background: var(--cyan); color: var(--dark); }
+  .wrong .option-indicator { background: var(--pink); color: #fff; }
+
+  .quiz-feedback {
+    margin-top: 20px; padding: 14px 18px; border-radius: 14px;
+    font-size: 0.9rem; font-weight: 600; display: none; align-items: center; gap: 10px;
+  }
+  .quiz-feedback.correct { background: rgba(0,245,212,0.12); color: var(--cyan); border: 1px solid rgba(0,245,212,0.3); display: flex; }
+  .quiz-feedback.wrong { background: rgba(255,77,166,0.12); color: var(--pink); border: 1px solid rgba(255,77,166,0.3); display: flex; }
+
+  .quiz-controls {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 28px; gap: 12px; flex-wrap: wrap;
+  }
+  .quiz-streak {
+    font-size: 0.85rem; color: var(--yellow); font-weight: 700;
+    min-width: 80px;
+  }
+
+  .btn-quiz {
+    padding: 12px 24px; border-radius: 12px; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; border: none; transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn-next {
+    background: linear-gradient(135deg, var(--purple), var(--blue));
+    color: #fff; box-shadow: 0 4px 16px rgba(155,93,229,0.3);
+  }
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(155,93,229,0.5); }
+  .btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-restart {
+    background: linear-gradient(135deg, var(--pink), var(--yellow));
+    color: var(--dark);
+    box-shadow: 0 4px 16px rgba(255,77,166,0.3);
+  }
+  .btn-restart:hover { transform: translateY(-2px); }
+
+  /* Score board */
+  .quiz-scoreboard {
+    text-align: center; padding: 20px 0; display: none;
+  }
+  .scoreboard-emoji { font-size: 4rem; margin-bottom: 16px; }
+  .scoreboard-title {
+    font-size: 1.8rem; font-weight: 900; margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--yellow), var(--pink));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .scoreboard-sub { color: var(--muted); margin-bottom: 24px; font-size: 1rem; }
+  .score-big {
+    font-size: 4rem; font-weight: 900; line-height: 1;
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .score-out-of { font-size: 1rem; color: var(--muted); margin-bottom: 24px; }
+  .score-breakdown {
+    display: flex; justify-content: center; gap: 24px; margin-bottom: 28px; flex-wrap: wrap;
+  }
+  .score-item { text-align: center; }
+  .score-item-num { font-size: 1.5rem; font-weight: 900; }
+  .score-item-label { font-size: 0.75rem; color: var(--muted); }
+  .s-correct .score-item-num { color: var(--cyan); }
+  .s-wrong .score-item-num { color: var(--pink); }
+
+  /* âââ CONTACT âââ */
+  #contact { background: var(--card2); text-align: center; }
+  .contact-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 32px; }
+  .contact-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 24px; border-radius: 14px; text-decoration: none;
+    font-weight: 700; font-size: 0.9rem; transition: transform 0.2s;
+  }
+  .contact-link:hover { transform: translateY(-4px); }
+  .cl-email { background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff; }
+  .cl-li { background: linear-gradient(135deg, #0077b5, #00a0dc); color: #fff; }
+
+  /* âââ FOOTER âââ */
+  footer {
+    text-align: center; padding: 24px; font-size: 0.8rem; color: var(--muted);
+    border-top: 1px solid rgba(155,93,229,0.15);
+  }
+
+  /* âââ MOBILE âââ */
+  @media (max-width: 680px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; flex-direction: column; position: absolute; top: 60px; left: 0; right: 0; background: rgba(13,13,26,0.98); padding: 20px; gap: 16px; border-bottom: 1px solid rgba(155,93,229,0.2); }
+    .nav-links.open { display: flex; }
+    .hamburger { display: flex; }
+    .about-grid { grid-template-columns: 1fr; }
+    .stat-cards { grid-template-columns: 1fr 1fr; }
+    .quiz-card { padding: 24px 18px; }
+    section { padding: 60px 16px; }
+    .hero-btns { flex-direction: column; align-items: center; }
+  }
+
+  /* âââ SCROLL ANIMATIONS âââ */
+  .fade-up {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  /* âââ CONFETTI particle (CSS only) âââ */
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+  .confetti-piece {
+    position: fixed; top: -20px; width: 10px; height: 10px; border-radius: 2px;
+    pointer-events: none; z-index: 9999;
+    animation: confettiFall linear forwards;
+  }
+</style>
 </head>
 <body>
 
+<!-- NAV -->
 <nav>
-  <div class="logo">EK</div>
-  <ul>
+  <div class="nav-logo">EK Lok</div>
+  <ul class="nav-links" id="navLinks">
     <li><a href="#about">About</a></li>
-    <li><a href="#game">Game</a></li>
+    <li><a href="#career">Career</a></li>
+    <li><a href="#awards">Awards</a></li>
+    <li><a href="#training">Training</a></li>
+    <li><a href="#quiz">ð¯ Quiz</a></li>
+    <li><a href="#contact">Contact</a></li>
   </ul>
+  <div class="hamburger" id="hamburger" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </div>
 </nav>
 
 <!-- HERO -->
-<section class="hero" id="about">
-  <div class="hero-text">
-    <div class="tag">AI Content Creation Trainer</div>
-    <h1>Hi, I'm <span>EK</span> 👋</h1>
-    <p>
-      I help individuals and teams unlock the power of AI for content creation.
-      From prompt crafting to workflow automation, I turn AI tools into real creative skills
-      you can use every day.
-    </p>
-    <a href="#game" class="btn">Play My Word Game</a>
+<section id="hero">
+  <div class="hero-bg-circles">
+    <div class="circle c1"></div>
+    <div class="circle c2"></div>
+    <div class="circle c3"></div>
   </div>
-  <div class="hero-img">
-    <img src="ME NEW square.jpg" alt="EK profile photo" />
-  </div>
-</section>
-
-<!-- SKILLS -->
-<section class="section">
-  <h2 class="section-title">What I <span>Do</span></h2>
-  <div class="chips">
-    <span class="chip">Prompt Engineering</span>
-    <span class="chip">AI Writing Tools</span>
-    <span class="chip">Content Strategy</span>
-    <span class="chip">Workflow Automation</span>
-    <span class="chip">ChatGPT & Claude</span>
-    <span class="chip">AI Video & Image</span>
-    <span class="chip">Training & Workshops</span>
-    <span class="chip">Social Media AI</span>
-    <span class="chip">AI Productivity</span>
-  </div>
-</section>
-
-<!-- GAME -->
-<section class="game-section" id="game">
-  <h2>AI <span>Word Game</span></h2>
-  <p class="subtitle">Guess the AI &amp; content creation term. You have 6 tries. Green = correct spot, Yellow = wrong spot.</p>
-
-  <div class="game-card">
-    <div id="hint-text"></div>
-    <div id="word-display"></div>
-    <div id="attempts-log"></div>
-    <div id="status-msg"></div>
-    <div class="input-row">
-      <input id="guess-input" type="text" maxlength="20" placeholder="Your guess..." autocomplete="off" autocorrect="off" spellcheck="false" />
-      <button class="game-btn" onclick="submitGuess()">Guess</button>
-      <button class="game-btn secondary" onclick="newGame()">New Word</button>
+  <div class="hero-content">
+    <div class="profile-img-wrap">
+      <img src="ME NEW square.jpg" alt="Lok Eng Keat" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#9b5de5,#00bbf9)'">
     </div>
-    <div class="keyboard" id="keyboard"></div>
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#166534;"></div> Correct spot</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#854d0e;"></div> Wrong spot</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#2a2a2a;border:1px solid #444"></div> Not in word</div>
+    <div class="hero-badge">â¨ SkillsFuture Fellow 2023</div>
+    <h1>Lok Eng Keat</h1>
+    <p class="hero-sub">Trainer Â· AI Content Creator Â· Broadcast Veteran<br>
+    Turning complex AI tools into simple, powerful skills for everyone.</p>
+    <div class="hero-tags">
+      <span class="tag tag-pink">ð¤ Generative AI</span>
+      <span class="tag tag-blue">ðº Broadcast</span>
+      <span class="tag tag-cyan">ð¬ Videography</span>
+      <span class="tag tag-yellow">ð¸ Photography</span>
+    </div>
+    <div class="hero-btns">
+      <a href="#quiz" class="btn btn-primary">ð¯ Try the AI Quiz!</a>
+      <a href="#about" class="btn btn-outline">Learn More</a>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="section-label sl-pink">About Me</div>
+    <h2 class="section-title">Passionate Trainer &amp; AI Enthusiast</h2>
+    <div class="about-grid">
+      <div class="about-text fade-up">
+        <p>Hi! I'm <strong>Lok Eng Keat (EK)</strong> â a trainer with over <strong>two decades</strong> of experience in broadcast lighting, videography and photography, and now one of Singapore's most hands-on trainers in <strong>Generative AI for content creation</strong>.</p>
+        <p>I spent 33 years at <strong>Mediacorp</strong>, rising from Trainee Lighting Designer to Senior Manager, working on everything from dramas and live national events to mentoring hundreds of colleagues. Today I channel that experience into <strong>practical, no-jargon AI training</strong> that works for real people in the real world.</p>
+        <p>I believe great training should feel less like a lecture and more like a <strong>light-bulb moment</strong>. Whether it's prompting techniques, AI video creation or smartphone photography â I make it click.</p>
+        <p>Languages: <strong>English, Chinese &amp; Malay</strong></p>
+      </div>
+      <div class="stat-cards fade-up">
+        <div class="stat-card">
+          <div class="stat-num">33+</div>
+          <div class="stat-label">Years at Mediacorp</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">3,000+</div>
+          <div class="stat-label">Learners Trained</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">144</div>
+          <div class="stat-label">Classes Conducted</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">500+</div>
+          <div class="stat-label">Colleagues Mentored</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CAREER -->
+<section id="career">
+  <div class="container">
+    <div class="section-label sl-blue">Career Journey</div>
+    <h2 class="section-title">From Broadcast to AI</h2>
+    <div class="timeline">
+
+      <div class="tl-item fade-up">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="tl-date">Oct 2025 â Present</div>
+          <div class="tl-title">Adjunct Lecturer + Associate Trainer (Hustle Academy / Vertical Institute)</div>
+          <div class="tl-org">School of Engineering Â· Hustle Academy Â· Vertical Institute</div>
+          <div class="tl-desc">Teaching WSQ Smartphone Photography, WSQ AI Video Creation, and running Gen AI Bootcamps for working professionals.</div>
+        </div>
+      </div>
+
+      <div class="tl-item fade-up">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="tl-date">Feb 2024 â Present</div>
+          <div class="tl-title">Associate Trainer</div>
+          <div class="tl-org">Skills Development Academy</div>
+          <div class="tl-desc">Delivering modules including AI Tools for Content Creation, AI Content Creation for Productivity, Smartphone Photography, Storyboarding & Copywriting, and Effective Presentation Skills.</div>
+        </div>
+      </div>
+
+      <div class="tl-item fade-up">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="tl-date">Jan 2004 â Jan 2024</div>
+          <div class="tl-title">Training & Development Lead</div>
+          <div class="tl-org">Mediacorp Singapore</div>
+          <div class="tl-desc">Conducted broadcast, lighting and videography training for 500+ colleagues â producers, directors, artistes and crew. From 2017, mentored teams pivoting to online and social media content. Introduced Generative AI tools to 50+ colleagues in 2023 through structured workshops.</div>
+        </div>
+      </div>
+
+      <div class="tl-item fade-up">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="tl-date">Mar 1991 â Jan 2024</div>
+          <div class="tl-title">Trainee â Senior Manager, Lighting Group</div>
+          <div class="tl-org">Mediacorp (SBC / TCS / MediaCorp)</div>
+          <div class="tl-desc">A 33-year journey from Trainee Lighting Designer to Principal Lighting Designer to Senior Manager. Worked on dramas, sitcoms, telemovies, live sports, music videos, and landmark national events including the National Day Rally and President's Swearing-In Ceremony.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- AWARDS -->
+<section id="awards">
+  <div class="container">
+    <div class="section-label sl-yellow">Recognition</div>
+    <h2 class="section-title">Awards &amp; Highlights</h2>
+    <div class="awards-grid">
+      <div class="award-card fade-up">
+        <div class="award-icon">ð</div>
+        <div class="award-title">SkillsFuture Fellowship 2023</div>
+        <div class="award-org">Presented by President Tharman Shanmugaratnam</div>
+        <div class="award-desc">Singapore's highest honour for exemplary skills mastery â recognising EK's impact across AI training, broadcast education and industry partnerships including overseas TV stations.</div>
+      </div>
+      <div class="award-card fade-up">
+        <div class="award-icon">ð¥</div>
+        <div class="award-title">Top Trainer Award 2024 &amp; 2025</div>
+        <div class="award-org">FirstCom Academy</div>
+        <div class="award-desc">Awarded for conducting 144 classes, training more than 3,000 learners with consistently excellent ratings.</div>
+      </div>
+      <div class="award-card fade-up">
+        <div class="award-icon">ð</div>
+        <div class="award-title">MOE Registered Trainer</div>
+        <div class="award-org">Mar 2025 â Mar 2027</div>
+        <div class="award-desc">Registered for Film/Video, Photography, AVA and Public Speaking CCAs â bringing professional-grade skills into schools.</div>
+      </div>
+      <div class="award-card fade-up">
+        <div class="award-icon">ð¤</div>
+        <div class="award-title">Certified Prompt Engineer</div>
+        <div class="award-org">SUTD Academy (Sep 2025)</div>
+        <div class="award-desc">Certified in AI prompting methodology, paired with AI Tools for Creative Professionals and Digital Marketers certifications from NTUC LearningHub.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRAINING AREAS -->
+<section id="training">
+  <div class="container">
+    <div class="section-label sl-cyan">What I Train</div>
+    <h2 class="section-title">Training Expertise</h2>
+    <div class="training-grid">
+      <div class="training-card fade-up">
+        <div class="training-icon">ð¤</div>
+        <div class="training-title">AI Tools for Content Creation</div>
+        <div class="training-orgs">Mediacorp Â· Skills Development Academy Â· Hustle Academy Â· Vertical Institute Â· Strides Premier</div>
+      </div>
+      <div class="training-card fade-up">
+        <div class="training-icon">ð¡</div>
+        <div class="training-title">Broadcast Lighting</div>
+        <div class="training-orgs">Mediacorp Â· Temasek Poly Â· Nanyang Poly Â· Singapore Media Academy Â· Radio Television Brunei Â· Bhutan Broadcasting Service</div>
+      </div>
+      <div class="training-card fade-up">
+        <div class="training-icon">ð¬</div>
+        <div class="training-title">Videography &amp; Photography</div>
+        <div class="training-orgs">Mediacorp Â· New Creation Church Â· Skills Development Academy Â· SPH Media Academy Â· Hustle Academy</div>
+      </div>
+      <div class="training-card fade-up">
+        <div class="training-icon">ð±</div>
+        <div class="training-title">Smartphone Photography &amp; AI Video</div>
+        <div class="training-orgs">Hustle Academy Â· Skills Development Academy Â· SingEx Â· SUSS</div>
+      </div>
+      <div class="training-card fade-up">
+        <div class="training-icon">ð¢</div>
+        <div class="training-title">Broadcast Techniques</div>
+        <div class="training-orgs">Mediacorp Â· SUSS Â· SPH Media Academy Â· Nanyang Poly Â· Overseas TV Stations</div>
+      </div>
+      <div class="training-card fade-up">
+        <div class="training-icon">âï¸</div>
+        <div class="training-title">Storyboarding &amp; Copywriting</div>
+        <div class="training-orgs">Mediacorp Â· Skills Development Academy Â· SingEx</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="container quiz-wrapper">
+    <div class="section-label sl-pink" style="margin-bottom:10px;">Interactive Challenge</div>
+    <h2 class="section-title">ð¯ AI Content Creation Quiz</h2>
+    <p style="color:var(--muted);margin-bottom:32px;font-size:0.95rem;">Think you know your AI tools? Test yourself with 10 questions. Get a streak bonus! ð¥</p>
+
+    <div class="quiz-progress-bar-wrap">
+      <div class="quiz-progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+
+    <div class="quiz-header-info">
+      <div class="quiz-q-counter" id="qCounter">Question 1 of 10</div>
+      <div class="quiz-score-display" id="scoreDisplay">Score: 0</div>
+    </div>
+
+    <div class="quiz-card" id="quizCard">
+      <div class="quiz-q-num" id="qNum">QUESTION 1</div>
+      <div class="quiz-question" id="qText"></div>
+      <div class="quiz-options" id="qOptions"></div>
+      <div class="quiz-feedback" id="qFeedback"></div>
+    </div>
+
+    <div class="quiz-controls">
+      <div class="quiz-streak" id="streakDisplay"></div>
+      <button class="btn-quiz btn-next" id="btnNext" disabled onclick="nextQuestion()">
+        Next â
+      </button>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="quiz-card quiz-scoreboard" id="scoreboard" style="display:none;">
+      <div class="scoreboard-emoji" id="sbEmoji">ð</div>
+      <div class="scoreboard-title" id="sbTitle">Quiz Complete!</div>
+      <div class="scoreboard-sub" id="sbSub">Here's how you did:</div>
+      <div class="score-big" id="sbScore">0</div>
+      <div class="score-out-of">out of 10</div>
+      <div class="score-breakdown">
+        <div class="score-item s-correct">
+          <div class="score-item-num" id="sbCorrect">0</div>
+          <div class="score-item-label">â Correct</div>
+        </div>
+        <div class="score-item s-wrong">
+          <div class="score-item-num" id="sbWrong">0</div>
+          <div class="score-item-label">â Wrong</div>
+        </div>
+        <div class="score-item">
+          <div class="score-item-num" style="color:var(--yellow)" id="sbStreak">0</div>
+          <div class="score-item-label">ð¥ Best Streak</div>
+        </div>
+      </div>
+      <button class="btn-quiz btn-restart" onclick="restartQuiz()">ð Play Again</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <div class="section-label sl-cyan">Get In Touch</div>
+    <h2 class="section-title">Let's Connect!</h2>
+    <p style="color:var(--muted);max-width:500px;margin:0 auto;line-height:1.7;">
+      Interested in AI training for your team, organisation or school? I'd love to hear from you.
+    </p>
+    <div class="contact-links">
+      <a href="mailto:lokengkeat@gmail.com" class="contact-link cl-email">
+        ð§ lokengkeat@gmail.com
+      </a>
+      <a href="https://www.linkedin.com/in/ek-lok280160160/recent-activity/shares/" target="_blank" class="contact-link cl-li">
+        ð¼ LinkedIn Profile
+      </a>
     </div>
   </div>
 </section>
 
 <footer>
-  &copy; 2026 EK · AI Content Creation Trainer
+  <p>Â© 2026 Lok Eng Keat Â· Trainer Â· AI Content Creator Â· Singapore ð¸ð¬</p>
 </footer>
 
 <script>
-  // ── WORD LIST ──────────────────────────────────────────────
-  const WORDS = [
-    { word: "PROMPT",    hint: "What you type into an AI to get a response" },
-    { word: "MODEL",     hint: "The AI brain behind the tool (e.g. GPT-4, Claude)" },
-    { word: "TOKEN",     hint: "Small chunk of text that AI processes" },
-    { word: "AGENT",     hint: "AI that can take actions autonomously" },
-    { word: "TRAIN",     hint: "Teaching an AI on data" },
-    { word: "DRAFT",     hint: "First version of AI-generated content" },
-    { word: "IMAGE",     hint: "Visual output from tools like Midjourney or DALL-E" },
-    { word: "VIDEO",     hint: "AI-generated moving content" },
-    { word: "VOICE",     hint: "AI-generated audio narration" },
-    { word: "BRIEF",     hint: "Short creative direction given to AI" },
-    { word: "CONTEXT",   hint: "Background info given to an AI in a conversation" },
-    { word: "SCRIPT",    hint: "AI-written text for video or presentation" },
-    { word: "CAPTION",   hint: "Short AI-written text for social media posts" },
-    { word: "CONTENT",   hint: "The output produced for audiences" },
-    { word: "WORKFLOW",  hint: "Step-by-step process to create content with AI" },
-    { word: "ITERATE",   hint: "Refining your AI output through multiple rounds" },
-    { word: "GENERATE",  hint: "To produce output using AI" },
-  ];
+// âââ NAV TOGGLE âââ
+function toggleNav() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
+});
 
-  // ── STATE ──────────────────────────────────────────────────
-  let target = "";
-  let hint = "";
-  let attempts = [];
-  let maxAttempts = 6;
-  let gameOver = false;
-  let keyStates = {};
+// âââ SCROLL FADE âââ
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
-  // ── INIT ───────────────────────────────────────────────────
-  function newGame() {
-    const pick = WORDS[Math.floor(Math.random() * WORDS.length)];
-    target = pick.word;
-    hint = pick.hint;
-    attempts = [];
-    gameOver = false;
-    keyStates = {};
-    document.getElementById("status-msg").textContent = "";
-    document.getElementById("guess-input").value = "";
-    document.getElementById("guess-input").disabled = false;
-    document.getElementById("hint-text").textContent = "Hint: " + hint;
-    renderWordDisplay();
-    renderAttempts();
-    renderKeyboard();
+// âââ QUIZ DATA âââ
+const questions = [
+  {
+    q: "Which AI tool is best known for generating photorealistic images from text prompts?",
+    options: ["ChatGPT", "Midjourney", "Grammarly", "Hootsuite"],
+    correct: 1,
+    explain: "Midjourney is a leading AI image generator known for stunning, photorealistic and artistic outputs from text prompts."
+  },
+  {
+    q: "What is a 'prompt' in the context of Generative AI?",
+    options: [
+      "A computer hardware component",
+      "The instruction or text you give to an AI to get a response",
+      "A type of video codec",
+      "A social media scheduling feature"
+    ],
+    correct: 1,
+    explain: "A prompt is the text instruction you provide to an AI model â the better your prompt, the better your output!"
+  },
+  {
+    q: "Which company developed ChatGPT?",
+    options: ["Google", "Meta", "OpenAI", "Microsoft"],
+    correct: 2,
+    explain: "ChatGPT was created by OpenAI, founded in 2015. Microsoft has invested heavily in OpenAI, but ChatGPT itself is OpenAI's product."
+  },
+  {
+    q: "What does 'GenAI' stand for?",
+    options: ["Generic Artificial Intelligence", "Generative Artificial Intelligence", "General AI Networks", "Genuine AI Interface"],
+    correct: 1,
+    explain: "GenAI = Generative AI â AI systems that can generate new content (text, images, video, audio) based on patterns learned from training data."
+  },
+  {
+    q: "Which AI tool is specifically designed for AI-powered video creation from text?",
+    options: ["Canva", "Runway ML", "Photoshop", "Adobe Premiere"],
+    correct: 1,
+    explain: "Runway ML (Gen-2 and Gen-3) is a leading AI video generation tool that creates video from text prompts or images."
+  },
+  {
+    q: "What is 'hallucination' in AI?",
+    options: [
+      "When AI creates visual art",
+      "When AI generates confident but incorrect or made-up information",
+      "A special AI video effect",
+      "When AI learns too fast"
+    ],
+    correct: 1,
+    explain: "AI hallucination is when a model generates plausible-sounding but false or fabricated information. Always fact-check AI outputs!"
+  },
+  {
+    q: "Which of these is a key principle of effective AI prompting?",
+    options: [
+      "Use as few words as possible",
+      "Always write in uppercase",
+      "Be specific, clear and provide context",
+      "Never give examples"
+    ],
+    correct: 2,
+    explain: "Great prompts are specific, contextual and clear. Adding examples, tone, format and role context dramatically improves results."
+  },
+  {
+    q: "What is Adobe Firefly primarily used for?",
+    options: [
+      "Video editing",
+      "AI-powered image and design generation within Adobe tools",
+      "Cloud storage",
+      "Social media analytics"
+    ],
+    correct: 1,
+    explain: "Adobe Firefly is Adobe's generative AI model for creating images, text effects, and design assets â integrated into Photoshop, Illustrator and Express."
+  },
+  {
+    q: "Which approach describes 'AI-assisted content creation'?",
+    options: [
+      "AI creates everything with no human input",
+      "Humans and AI collaborate â AI generates drafts, humans refine",
+      "AI only checks grammar",
+      "Humans do everything, AI just stores files"
+    ],
+    correct: 1,
+    explain: "AI-assisted creation is a human-AI collaboration: AI accelerates the process with drafts and ideas while humans guide, edit and add creative judgement."
+  },
+  {
+    q: "What is 'text-to-image' AI generation?",
+    options: [
+      "Converting a photo to text using OCR",
+      "Writing captions for images automatically",
+      "Creating an image from a written text description using AI",
+      "Extracting text from a PDF"
+    ],
+    correct: 2,
+    explain: "Text-to-image AI (like Midjourney, DALL-E, Stable Diffusion) takes your written description and generates a brand-new image â no camera needed!"
   }
+];
 
-  // ── RENDER CURRENT WORD BLANKS ────────────────────────────
-  function renderWordDisplay() {
-    const container = document.getElementById("word-display");
-    container.innerHTML = "";
-    for (let i = 0; i < target.length; i++) {
-      const box = document.createElement("div");
-      box.className = "letter-box";
-      // Fill in solved letters
-      const solved = getSolvedLetters();
-      box.textContent = solved[i] || "";
-      container.appendChild(box);
-    }
-  }
+// âââ QUIZ STATE âââ
+let current = 0, score = 0, streak = 0, bestStreak = 0;
+let correctCount = 0, wrongCount = 0;
+let answered = false;
+const labels = ['A','B','C','D'];
 
-  function getSolvedLetters() {
-    const solved = Array(target.length).fill("");
-    for (const attempt of attempts) {
-      const result = scoreGuess(attempt);
-      result.forEach((r, i) => {
-        if (r === "correct") solved[i] = attempt[i];
-      });
-    }
-    return solved;
-  }
+function loadQuestion() {
+  if (current >= questions.length) { showScoreboard(); return; }
+  answered = false;
+  const q = questions[current];
+  document.getElementById('qNum').textContent = `QUESTION ${current + 1}`;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('qCounter').textContent = `Question ${current + 1} of ${questions.length}`;
+  document.getElementById('progressBar').style.width = `${(current / questions.length) * 100}%`;
+  document.getElementById('btnNext').disabled = true;
+  document.getElementById('qFeedback').className = 'quiz-feedback';
 
-  // ── SCORE A GUESS ─────────────────────────────────────────
-  function scoreGuess(guess) {
-    const result = Array(target.length).fill("wrong");
-    const targetArr = target.split("");
-    const guessArr  = guess.split("");
-    const used = Array(target.length).fill(false);
-
-    // Pass 1: correct positions
-    guessArr.forEach((ch, i) => {
-      if (ch === targetArr[i]) {
-        result[i] = "correct";
-        used[i] = true;
-      }
-    });
-
-    // Pass 2: wrong position
-    guessArr.forEach((ch, i) => {
-      if (result[i] === "correct") return;
-      const j = targetArr.findIndex((tc, ti) => !used[ti] && tc === ch);
-      if (j !== -1) {
-        result[i] = "wrong-pos";
-        used[j] = true;
-      }
-    });
-
-    return result;
-  }
-
-  // ── RENDER PAST ATTEMPTS ──────────────────────────────────
-  function renderAttempts() {
-    const log = document.getElementById("attempts-log");
-    log.innerHTML = "";
-    attempts.forEach(attempt => {
-      const result = scoreGuess(attempt);
-      const row = document.createElement("div");
-      row.className = "attempt-row";
-      attempt.split("").forEach((ch, i) => {
-        const box = document.createElement("div");
-        box.className = "attempt-box " + result[i];
-        box.textContent = ch;
-        row.appendChild(box);
-      });
-      log.appendChild(row);
-    });
-  }
-
-  // ── KEYBOARD ──────────────────────────────────────────────
-  const ROWS = [
-    ["Q","W","E","R","T","Y","U","I","O","P"],
-    ["A","S","D","F","G","H","J","K","L"],
-    ["ENTER","Z","X","C","V","B","N","M","⌫"]
-  ];
-
-  function renderKeyboard() {
-    const kb = document.getElementById("keyboard");
-    kb.innerHTML = "";
-    ROWS.forEach(row => {
-      const rowEl = document.createElement("div");
-      rowEl.className = "kb-row";
-      row.forEach(k => {
-        const btn = document.createElement("button");
-        btn.className = "kb-key" + (k.length > 1 ? " wide" : "");
-        btn.textContent = k;
-        const state = keyStates[k];
-        if (state) btn.classList.add(state);
-        btn.addEventListener("click", () => {
-          if (k === "ENTER") submitGuess();
-          else if (k === "⌫") backspace();
-          else typeKey(k);
-        });
-        rowEl.appendChild(btn);
-      });
-      kb.appendChild(rowEl);
-    });
-  }
-
-  function typeKey(k) {
-    const inp = document.getElementById("guess-input");
-    if (inp.value.length < target.length) inp.value += k;
-  }
-  function backspace() {
-    const inp = document.getElementById("guess-input");
-    inp.value = inp.value.slice(0, -1);
-  }
-
-  // ── SUBMIT GUESS ──────────────────────────────────────────
-  function submitGuess() {
-    if (gameOver) return;
-    const inp = document.getElementById("guess-input");
-    const guess = inp.value.toUpperCase().trim();
-    const status = document.getElementById("status-msg");
-
-    if (guess.length !== target.length) {
-      status.style.color = "var(--yellow)";
-      status.textContent = `Guess must be ${target.length} letters.`;
-      return;
-    }
-    if (!/^[A-Z]+$/.test(guess)) {
-      status.style.color = "var(--yellow)";
-      status.textContent = "Letters only please!";
-      return;
-    }
-
-    attempts.push(guess);
-    inp.value = "";
-
-    // Update key states
-    const result = scoreGuess(guess);
-    guess.split("").forEach((ch, i) => {
-      const r = result[i];
-      const cur = keyStates[ch];
-      if (cur === "correct") return;
-      if (r === "correct") keyStates[ch] = "correct";
-      else if (r === "wrong-pos" && cur !== "correct") keyStates[ch] = "wrong-pos";
-      else if (!cur) keyStates[ch] = "wrong";
-    });
-
-    renderAttempts();
-    renderKeyboard();
-
-    if (guess === target) {
-      status.style.color = "var(--green)";
-      status.textContent = "🎉 You got it! Hit 'New Word' to play again.";
-      gameOver = true;
-      inp.disabled = true;
-      renderWordDisplay();
-    } else if (attempts.length >= maxAttempts) {
-      status.style.color = "var(--red)";
-      status.textContent = `Game over! The word was "${target}". Try another!`;
-      gameOver = true;
-      inp.disabled = true;
-      // Reveal the word
-      const container = document.getElementById("word-display");
-      container.innerHTML = "";
-      target.split("").forEach(ch => {
-        const box = document.createElement("div");
-        box.className = "letter-box correct";
-        box.textContent = ch;
-        container.appendChild(box);
-      });
-    } else {
-      status.style.color = "var(--muted)";
-      status.textContent = `${maxAttempts - attempts.length} attempt${maxAttempts - attempts.length !== 1 ? "s" : ""} left.`;
-      renderWordDisplay();
-    }
-  }
-
-  // ── KEYBOARD INPUT ────────────────────────────────────────
-  document.addEventListener("keydown", (e) => {
-    if (gameOver) return;
-    if (e.key === "Enter") { submitGuess(); return; }
-    if (e.key === "Backspace") { backspace(); return; }
-    if (/^[a-zA-Z]$/.test(e.key)) typeKey(e.key.toUpperCase());
+  const opts = document.getElementById('qOptions');
+  opts.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.innerHTML = `<span class="option-indicator">${labels[i]}</span>${opt}`;
+    btn.onclick = () => selectOption(i);
+    opts.appendChild(btn);
   });
+  updateStreak();
+}
 
-  // ── START ─────────────────────────────────────────────────
-  newGame();
+function selectOption(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const opts = document.getElementById('qOptions');
+  const buttons = opts.querySelectorAll('.quiz-option');
+  buttons.forEach(b => b.disabled = true);
+
+  if (idx === q.correct) {
+    buttons[idx].classList.add('correct');
+    score += 10 + (streak >= 2 ? 5 : 0); // streak bonus
+    streak++;
+    correctCount++;
+    if (streak > bestStreak) bestStreak = streak;
+    const fb = document.getElementById('qFeedback');
+    fb.className = 'quiz-feedback correct';
+    fb.innerHTML = `â <span>Correct! ${streak >= 2 ? `ð¥ Streak x${streak} â bonus points!` : ''} ${q.explain}</span>`;
+  } else {
+    buttons[idx].classList.add('wrong');
+    buttons[q.correct].classList.add('reveal-correct');
+    streak = 0;
+    wrongCount++;
+    const fb = document.getElementById('qFeedback');
+    fb.className = 'quiz-feedback wrong';
+    fb.innerHTML = `â <span>Not quite! ${q.explain}</span>`;
+  }
+
+  document.getElementById('scoreDisplay').textContent = `Score: ${score}`;
+  document.getElementById('btnNext').disabled = false;
+  updateStreak();
+}
+
+function updateStreak() {
+  const el = document.getElementById('streakDisplay');
+  el.textContent = streak >= 2 ? `ð¥ Streak x${streak}` : '';
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= questions.length) { showScoreboard(); return; }
+  loadQuestion();
+}
+
+function showScoreboard() {
+  document.getElementById('quizCard').style.display = 'none';
+  document.getElementById('btnNext').style.display = 'none';
+  document.querySelector('.quiz-header-info').style.display = 'none';
+  document.getElementById('streakDisplay').textContent = '';
+
+  const sb = document.getElementById('scoreboard');
+  sb.style.display = 'flex';
+
+  document.getElementById('sbScore').textContent = score;
+  document.getElementById('sbCorrect').textContent = correctCount;
+  document.getElementById('sbWrong').textContent = wrongCount;
+  document.getElementById('sbStreak').textContent = bestStreak;
+
+  let emoji = 'ð', title = 'Keep Practising!', sub = "Every expert was once a beginner.";
+  if (score >= 90) { emoji = 'ð'; title = 'AI Master!'; sub = 'Perfect score â you really know your AI!'; }
+  else if (score >= 70) { emoji = 'ð'; title = 'Great Job!'; sub = 'You know your AI content creation stuff!'; }
+  else if (score >= 50) { emoji = 'ð'; title = 'Not Bad!'; sub = 'Solid effort â a bit more practice and you\'ll ace it!'; }
+
+  document.getElementById('sbEmoji').textContent = emoji;
+  document.getElementById('sbTitle').textContent = title;
+  document.getElementById('sbSub').textContent = sub;
+
+  if (score >= 70) launchConfetti();
+}
+
+function restartQuiz() {
+  current = 0; score = 0; streak = 0; bestStreak = 0;
+  correctCount = 0; wrongCount = 0; answered = false;
+  document.getElementById('scoreboard').style.display = 'none';
+  document.getElementById('quizCard').style.display = 'flex';
+  document.getElementById('btnNext').style.display = 'flex';
+  document.querySelector('.quiz-header-info').style.display = 'flex';
+  document.getElementById('scoreDisplay').textContent = 'Score: 0';
+  document.getElementById('progressBar').style.width = '0%';
+  loadQuestion();
+}
+
+function launchConfetti() {
+  const colors = ['#ff4da6','#9b5de5','#00bbf9','#00f5d4','#fee440'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      el.style.animationDelay = (Math.random() * 0.5) + 's';
+      el.style.width = el.style.height = (6 + Math.random() * 10) + 'px';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }, i * 30);
+  }
+}
+
+// Start quiz
+loadQuestion();
 </script>
-
 </body>
 </html>
